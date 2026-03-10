@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import DeveloperCard from './components/DeveloperCard';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useParams, useNavigate } from 'react-router-dom';
 
 import { extractTextFromPDF, getPageImage } from './services/pdfService';
 import { queryPDF } from './services/geminiService';
@@ -68,7 +69,8 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [chats, setChats] = useState<Chat[]>([]);
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const { chatId: currentChatId } = useParams<{ chatId: string }>();
+  const navigate = useNavigate();
   const [activeResult, setActiveResult] = useState<QueryResult | null>(null);
   
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -101,7 +103,7 @@ export default function App() {
         }, { merge: true });
       } else {
         setChats([]);
-        setCurrentChatId(null);
+        navigate('/');
         setMessages([]);
         setPdfDoc(null);
         setOriginalFile(null);
@@ -203,7 +205,7 @@ export default function App() {
           createdAt: serverTimestamp(),
           lastMessage: 'Document uploaded'
         });
-        setCurrentChatId(chatRef.id);
+        navigate(`/${chatRef.id}`);
         
         // Add initial message
         await addDoc(collection(db, 'chats', chatRef.id, 'messages'), {
@@ -310,12 +312,12 @@ export default function App() {
     setPdfDoc(null);
     setOriginalFile(null);
     setMessages([]);
-    setCurrentChatId(null);
+    navigate('/');
     setError(null);
   };
 
   const selectChat = async (chat: Chat) => {
-    setCurrentChatId(chat.id);
+    navigate(`/${chat.id}`);
     // Note: In a real app, we'd need to re-upload or store the PDF text/file
     // For this demo, we'll just clear the PDF state if it doesn't match
     if (pdfDoc?.name !== chat.pdfName) {

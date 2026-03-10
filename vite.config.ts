@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
 
   return {
+    base: '/Ai-assistant/',
     plugins: [react(), tailwindcss()],
 
     define: {
