@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Document ID: userId (Firebase Auth UID)
+    // Fields: uid, email, displayName, photoURL, createdAt
+    //
+    // Collection: chats
+    // Document ID: chatId
+    // Fields: userId, pdfName, createdAt, lastMessage
+    //
+    // Collection: chats/{chatId}/messages
+    // Document ID: messageId
+    // Fields: role, content, createdAt, result (optional)
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isChatOwner(chatId) {
+      return isAuthenticated() && get(/databases/$(database)/documents/chats/$(chatId)).data.userId == request.auth.uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "abhishekabhi18228@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid is string &&
+             data.email is string &&
+             (data.role == 'user' || !('role' in data) || isAdmin());
+    }
+
+    function isValidChat(data) {
+      return data.keys().hasAll(['userId', 'pdfName', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.pdfName is string &&
+             (data.createdAt is timestamp || data.createdAt is string);
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['role', 'content', 'createdAt']) &&
+             data.role in ['user', 'assistant'] &&
+             data.content is string &&
+             (data.createdAt is timestamp || data.createdAt is string);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+    }
+
+    match /chats/{chatId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidChat(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid && isValidChat(request.resource.data);
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      match /messages/{messageId} {
+        allow read: if isChatOwner(chatId);
+        allow create: if isChatOwner(chatId) && isValidMessage(request.resource.data);
+      }
+    }
+  }
+}

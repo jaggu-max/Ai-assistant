@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9f9f9;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+    --border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .dark {
+    --bg-primary: #171717;
+    --bg-secondary: #212121;
+    --text-primary: #ececec;
+    --text-secondary: #b4b4b4;
+    --border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  body {
+    @apply bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300;
+  }
+}
+
+@layer components {
+  .chat-bubble-user {
+    @apply bg-[#2f2f2f] text-white dark:bg-[#303030] dark:text-white rounded-2xl px-4 py-2 max-w-[80%] self-end;
+  }
+  
+  .chat-bubble-assistant {
+    @apply bg-transparent text-[var(--text-primary)] rounded-2xl px-4 py-2 max-w-[90%] self-start;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-sm;
+  }
+
+  .sidebar-item-active {
+    @apply bg-black/5 dark:bg-white/10;
+  }
+}

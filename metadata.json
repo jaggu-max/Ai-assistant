@@ -1,0 +1,5 @@
+{
+  "name": "AI PDF Query Assistant",
+  "description": "A modern AI-powered PDF assistant with chat history, visual extraction, and multi-user support.",
+  "requestFramePermissions": []
+}
