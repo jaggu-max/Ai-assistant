@@ -7,7 +7,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
 
   return {
-    base: '/Ai-assistant/',
+    // use a different base during development so the dev server serves assets from root
+    base: mode === 'production' ? '/Ai-assistant/' : '/',
     plugins: [react(), tailwindcss()],
 
     define: {
